@@ -1,312 +1,214 @@
-# bitnet.cpp
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-![version](https://img.shields.io/badge/version-1.0-blue)
+# BitNet Demo
 
-[<img src="./assets/header_model_release.png" alt="BitNet Model on Hugging Face" width="800"/>](https://huggingface.co/microsoft/BitNet-b1.58-2B-4T)
+Ce projet est une démonstration de l'utilisation du modèle Microsoft BitNet, un modèle LLM basé sur la quantification de bit. BitNet utilise une approche innovante de quantification 1-bit pour réduire considérablement la taille des modèles tout en préservant leurs capacités.
 
-Try it out via this [demo](https://bitnet-demo.azurewebsites.net/), or [build and run](https://github.com/microsoft/BitNet?tab=readme-ov-file#build-from-source) it on your own CPU.
+## Prérequis
 
-bitnet.cpp is the official inference framework for 1-bit LLMs (e.g., BitNet b1.58). It offers a suite of optimized kernels, that support **fast** and **lossless** inference of 1.58-bit models on CPU (with NPU and GPU support coming next).
+Ce projet nécessite :
+- Python 3.12 ou supérieur
+- Un gestionnaire de paquets Python moderne comme `uv` (recommandé) ou `pip`
+- Accès à Internet pour télécharger les modèles
+- Minimum 8GB de RAM recommandé
 
-The first release of bitnet.cpp is to support inference on CPUs. bitnet.cpp achieves speedups of **1.37x** to **5.07x** on ARM CPUs, with larger models experiencing greater performance gains. Additionally, it reduces energy consumption by **55.4%** to **70.0%**, further boosting overall efficiency. On x86 CPUs, speedups range from **2.37x** to **6.17x** with energy reductions between **71.9%** to **82.2%**. Furthermore, bitnet.cpp can run a 100B BitNet b1.58 model on a single CPU, achieving speeds comparable to human reading (5-7 tokens per second), significantly enhancing the potential for running LLMs on local devices. Please refer to the [technical report](https://arxiv.org/abs/2410.16144) for more details.
+## Configuration
 
-<img src="./assets/m2_performance.jpg" alt="m2_performance" width="800"/>
-<img src="./assets/intel_performance.jpg" alt="m2_performance" width="800"/>
-
->The tested models are dummy setups used in a research context to demonstrate the inference performance of bitnet.cpp.
-
-## Demo
-
-A demo of bitnet.cpp running a BitNet b1.58 3B model on Apple M2:
-
-https://github.com/user-attachments/assets/7f46b736-edec-4828-b809-4be780a3e5b1
-
-## What's New:
-- 04/14/2025 [BitNet Official 2B Parameter Model on Hugging Face](https://huggingface.co/microsoft/BitNet-b1.58-2B-4T) ![NEW](https://img.shields.io/badge/NEW-red)
-- 02/18/2025 [Bitnet.cpp: Efficient Edge Inference for Ternary LLMs](https://arxiv.org/abs/2502.11880)
-- 11/08/2024 [BitNet a4.8: 4-bit Activations for 1-bit LLMs](https://arxiv.org/abs/2411.04965)
-- 10/21/2024 [1-bit AI Infra: Part 1.1, Fast and Lossless BitNet b1.58 Inference on CPUs](https://arxiv.org/abs/2410.16144)
-- 10/17/2024 bitnet.cpp 1.0 released.
-- 03/21/2024 [The-Era-of-1-bit-LLMs__Training_Tips_Code_FAQ](https://github.com/microsoft/unilm/blob/master/bitnet/The-Era-of-1-bit-LLMs__Training_Tips_Code_FAQ.pdf)
-- 02/27/2024 [The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits](https://arxiv.org/abs/2402.17764)
-- 10/17/2023 [BitNet: Scaling 1-bit Transformers for Large Language Models](https://arxiv.org/abs/2310.11453)
-
-## Acknowledgements
-
-This project is based on the [llama.cpp](https://github.com/ggerganov/llama.cpp) framework. We would like to thank all the authors for their contributions to the open-source community. Also, bitnet.cpp's kernels are built on top of the Lookup Table methodologies pioneered in [T-MAC](https://github.com/microsoft/T-MAC/). For inference of general low-bit LLMs beyond ternary models, we recommend using T-MAC.
-## Official Models
-<table>
-    </tr>
-    <tr>
-        <th rowspan="2">Model</th>
-        <th rowspan="2">Parameters</th>
-        <th rowspan="2">CPU</th>
-        <th colspan="3">Kernel</th>
-    </tr>
-    <tr>
-        <th>I2_S</th>
-        <th>TL1</th>
-        <th>TL2</th>
-    </tr>
-    <tr>
-        <td rowspan="2"><a href="https://huggingface.co/microsoft/BitNet-b1.58-2B-4T">BitNet-b1.58-2B-4T</a></td>
-        <td rowspan="2">2.4B</td>
-        <td>x86</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-    </tr>
-    <tr>
-        <td>ARM</td>
-        <td>&#9989;</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-    </tr>
-</table>
-
-## Supported Models
-❗️**We use existing 1-bit LLMs available on [Hugging Face](https://huggingface.co/) to demonstrate the inference capabilities of bitnet.cpp. We hope the release of bitnet.cpp will inspire the development of 1-bit LLMs in large-scale settings in terms of model size and training tokens.**
-
-<table>
-    </tr>
-    <tr>
-        <th rowspan="2">Model</th>
-        <th rowspan="2">Parameters</th>
-        <th rowspan="2">CPU</th>
-        <th colspan="3">Kernel</th>
-    </tr>
-    <tr>
-        <th>I2_S</th>
-        <th>TL1</th>
-        <th>TL2</th>
-    </tr>
-    <tr>
-        <td rowspan="2"><a href="https://huggingface.co/1bitLLM/bitnet_b1_58-large">bitnet_b1_58-large</a></td>
-        <td rowspan="2">0.7B</td>
-        <td>x86</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-    </tr>
-    <tr>
-        <td>ARM</td>
-        <td>&#9989;</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-    </tr>
-    <tr>
-        <td rowspan="2"><a href="https://huggingface.co/1bitLLM/bitnet_b1_58-3B">bitnet_b1_58-3B</a></td>
-        <td rowspan="2">3.3B</td>
-        <td>x86</td>
-        <td>&#10060;</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-    </tr>
-    <tr>
-        <td>ARM</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-    </tr>
-    <tr>
-        <td rowspan="2"><a href="https://huggingface.co/HF1BitLLM/Llama3-8B-1.58-100B-tokens">Llama3-8B-1.58-100B-tokens</a></td>
-        <td rowspan="2">8.0B</td>
-        <td>x86</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-    </tr>
-    <tr>
-        <td>ARM</td>
-        <td>&#9989;</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-    </tr>
-    <tr>
-        <td rowspan="2"><a href="https://huggingface.co/collections/tiiuae/falcon3-67605ae03578be86e4e87026">Falcon3 Family</a></td>
-        <td rowspan="2">1B-10B</td>
-        <td>x86</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-        <td>&#9989;</td>
-    </tr>
-    <tr>
-        <td>ARM</td>
-        <td>&#9989;</td>
-        <td>&#9989;</td>
-        <td>&#10060;</td>
-    </tr>
-</table>
-
-
+Ce projet utilise :
+- Python 3.12
+- PyTorch >= 2.0.0
+- Transformers >= 4.34.0
+- Accelerate >= 0.23.0
+- uv (gestionnaire de paquets Python)
 
 ## Installation
 
-### Requirements
-- python>=3.9
-- cmake>=3.22
-- clang>=18
-    - For Windows users, install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/). In the installer, toggle on at least the following options(this also automatically installs the required additional tools like CMake):
-        -  Desktop-development with C++
-        -  C++-CMake Tools for Windows
-        -  Git for Windows
-        -  C++-Clang Compiler for Windows
-        -  MS-Build Support for LLVM-Toolset (clang)
-    - For Debian/Ubuntu users, you can download with [Automatic installation script](https://apt.llvm.org/)
+### 1. Configuration de l'environnement virtuel
 
-        `bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"`
-- conda (highly recommend)
-
-### Build from source
-
-> [!IMPORTANT]
-> If you are using Windows, please remember to always use a Developer Command Prompt / PowerShell for VS2022 for the following commands. Please refer to the FAQs below if you see any issues.
-
-1. Clone the repo
+#### Avec uv (recommandé)
 ```bash
-git clone --recursive https://github.com/microsoft/BitNet.git
-cd BitNet
+# Créer un environnement virtuel
+uv venv -p python3.12 .venv-uv
+
+# Activer l'environnement
+source .venv-uv/bin/activate  # Sur Unix/macOS
+# ou
+.venv-uv\Scripts\activate      # Sur Windows
 ```
-2. Install the dependencies
-```bash
-# (Recommended) Create a new conda environment
-conda create -n bitnet-cpp python=3.9
-conda activate bitnet-cpp
 
+#### Avec venv (alternative)
+```bash
+# Créer un environnement virtuel
+python -m venv .venv
+
+# Activer l'environnement
+source .venv/bin/activate      # Sur Unix/macOS
+# ou
+.venv\Scripts\activate         # Sur Windows
+```
+
+### 2. Installation des dépendances
+
+#### Avec uv (recommandé)
+```bash
+uv pip install -r requirements.txt
+```
+
+#### Avec pip (alternative)
+```bash
 pip install -r requirements.txt
 ```
-3. Build the project
-```bash
-# Manually download the model and run with local path
-huggingface-cli download microsoft/BitNet-b1.58-2B-4T-gguf --local-dir models/BitNet-b1.58-2B-4T
-python setup_env.py -md models/BitNet-b1.58-2B-4T -q i2_s
 
-```
-<pre>
-usage: setup_env.py [-h] [--hf-repo {1bitLLM/bitnet_b1_58-large,1bitLLM/bitnet_b1_58-3B,HF1BitLLM/Llama3-8B-1.58-100B-tokens,tiiuae/Falcon3-1B-Instruct-1.58bit,tiiuae/Falcon3-3B-Instruct-1.58bit,tiiuae/Falcon3-7B-Instruct-1.58bit,tiiuae/Falcon3-10B-Instruct-1.58bit}] [--model-dir MODEL_DIR] [--log-dir LOG_DIR] [--quant-type {i2_s,tl1}] [--quant-embd]
-                    [--use-pretuned]
+## Utilisation des modèles
 
-Setup the environment for running inference
+### Modèles supportés
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --hf-repo {1bitLLM/bitnet_b1_58-large,1bitLLM/bitnet_b1_58-3B,HF1BitLLM/Llama3-8B-1.58-100B-tokens,tiiuae/Falcon3-1B-Instruct-1.58bit,tiiuae/Falcon3-3B-Instruct-1.58bit,tiiuae/Falcon3-7B-Instruct-1.58bit,tiiuae/Falcon3-10B-Instruct-1.58bit}, -hr {1bitLLM/bitnet_b1_58-large,1bitLLM/bitnet_b1_58-3B,HF1BitLLM/Llama3-8B-1.58-100B-tokens,tiiuae/Falcon3-1B-Instruct-1.58bit,tiiuae/Falcon3-3B-Instruct-1.58bit,tiiuae/Falcon3-7B-Instruct-1.58bit,tiiuae/Falcon3-10B-Instruct-1.58bit}
-                        Model used for inference
-  --model-dir MODEL_DIR, -md MODEL_DIR
-                        Directory to save/load the model
-  --log-dir LOG_DIR, -ld LOG_DIR
-                        Directory to save the logging info
-  --quant-type {i2_s,tl1}, -q {i2_s,tl1}
-                        Quantization type
-  --quant-embd          Quantize the embeddings to f16
-  --use-pretuned, -p    Use the pretuned kernel parameters
-</pre>
-## Usage
-### Basic usage
-```bash
-# Run inference with the quantized model
-python run_inference.py -m models/BitNet-b1.58-2B-4T/ggml-model-i2_s.gguf -p "You are a helpful assistant" -cnv
-```
-<pre>
-usage: run_inference.py [-h] [-m MODEL] [-n N_PREDICT] -p PROMPT [-t THREADS] [-c CTX_SIZE] [-temp TEMPERATURE] [-cnv]
+Ce projet a été testé avec les modèles suivants :
+- `gpt2` - Fonctionne parfaitement, idéal pour tester l'installation
+- Modèles BitNet - Voir la note ci-dessous
 
-Run inference
+### Note importante sur BitNet
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -m MODEL, --model MODEL
-                        Path to model file
-  -n N_PREDICT, --n-predict N_PREDICT
-                        Number of tokens to predict when generating text
-  -p PROMPT, --prompt PROMPT
-                        Prompt to generate text from
-  -t THREADS, --threads THREADS
-                        Number of threads to use
-  -c CTX_SIZE, --ctx-size CTX_SIZE
-                        Size of the prompt context
-  -temp TEMPERATURE, --temperature TEMPERATURE
-                        Temperature, a hyperparameter that controls the randomness of the generated text
-  -cnv, --conversation  Whether to enable chat mode or not (for instruct models.)
-                        (When this option is turned on, the prompt specified by -p will be used as the system prompt.)
-</pre>
+Les modèles BitNet nécessitent d'utiliser le paramètre `trust_remote_code=True` lors du chargement du modèle et du tokenizer. Ceci est nécessaire car BitNet utilise du code personnalisé pour implémenter la quantification 1-bit.
 
-### Benchmark
-We provide scripts to run the inference benchmark providing a model.
+Si vous rencontrez des erreurs avec BitNet, vérifiez ces points :
+- Assurez-vous d'utiliser `trust_remote_code=True`
+- Vérifiez que vous utilisez le bon identifiant de modèle
+- La version actuelle des modèles BitNet peut nécessiter une version spécifique de Transformers
 
-```  
-usage: e2e_benchmark.py -m MODEL [-n N_TOKEN] [-p N_PROMPT] [-t THREADS]  
-   
-Setup the environment for running the inference  
-   
-required arguments:  
-  -m MODEL, --model MODEL  
-                        Path to the model file. 
-   
-optional arguments:  
-  -h, --help  
-                        Show this help message and exit. 
-  -n N_TOKEN, --n-token N_TOKEN  
-                        Number of generated tokens. 
-  -p N_PROMPT, --n-prompt N_PROMPT  
-                        Prompt to generate text from. 
-  -t THREADS, --threads THREADS  
-                        Number of threads to use. 
-```  
-   
-Here's a brief explanation of each argument:  
-   
-- `-m`, `--model`: The path to the model file. This is a required argument that must be provided when running the script.  
-- `-n`, `--n-token`: The number of tokens to generate during the inference. It is an optional argument with a default value of 128.  
-- `-p`, `--n-prompt`: The number of prompt tokens to use for generating text. This is an optional argument with a default value of 512.  
-- `-t`, `--threads`: The number of threads to use for running the inference. It is an optional argument with a default value of 2.  
-- `-h`, `--help`: Show the help message and exit. Use this argument to display usage information.  
-   
-For example:  
-   
-```sh  
-python utils/e2e_benchmark.py -m /path/to/model -n 200 -p 256 -t 4  
-```  
-   
-This command would run the inference benchmark using the model located at `/path/to/model`, generating 200 tokens from a 256 token prompt, utilizing 4 threads.  
+## Exécution
 
-For the model layout that do not supported by any public model, we provide scripts to generate a dummy model with the given model layout, and run the benchmark on your machine:
+Pour exécuter la démonstration :
 
 ```bash
-python utils/generate-dummy-bitnet-model.py models/bitnet_b1_58-large --outfile models/dummy-bitnet-125m.tl1.gguf --outtype tl1 --model-size 125M
-
-# Run benchmark with the generated model, use -m to specify the model path, -p to specify the prompt processed, -n to specify the number of token to generate
-python utils/e2e_benchmark.py -m models/dummy-bitnet-125m.tl1.gguf -p 512 -n 128
-```
-### FAQ (Frequently Asked Questions)📌 
-
-#### Q1: The build dies with errors building llama.cpp due to issues with std::chrono in log.cpp?
-
-**A:**
-This is an issue introduced in recent version of llama.cpp. Please refer to this [commit](https://github.com/tinglou/llama.cpp/commit/4e3db1e3d78cc1bcd22bcb3af54bd2a4628dd323) in the [discussion](https://github.com/abetlen/llama-cpp-python/issues/1942) to fix this issue.
-
-#### Q2: How to build with clang in conda environment on windows?
-
-**A:** 
-Before building the project, verify your clang installation and access to Visual Studio tools by running:
-```
-clang -v
+python bitnet_demo.py
 ```
 
-This command checks that you are using the correct version of clang and that the Visual Studio tools are available. If you see an error message such as:
-```
-'clang' is not recognized as an internal or external command, operable program or batch file.
+Ce script téléchargera le modèle configuré et générera une réponse à une question simple.
+
+### Modification du modèle utilisé
+
+Vous pouvez modifier la variable `model_id` dans le fichier `bitnet_demo.py` pour utiliser un autre modèle. Par exemple :
+
+```python
+# Pour utiliser GPT-2 (recommandé pour les tests)
+model_id = "gpt2"
+
+# Pour utiliser BitNet (nécessite trust_remote_code=True)
+model_id = "microsoft/bitnet-b1.58-2B-4T-bf16"
 ```
 
-It indicates that your command line window is not properly initialized for Visual Studio tools.
+## Paramètres de génération
 
-• If you are using Command Prompt, run:
-```
-"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat" -startdir=none -arch=x64 -host_arch=x64
+Vous pouvez ajuster les paramètres de génération dans le script pour obtenir des réponses de meilleure qualité :
+
+```python
+# Paramètres ajustables
+outputs = model.generate(
+    **input_ids,
+    max_new_tokens=50,        # Longueur de la réponse
+    temperature=0.7,          # Contrôle la créativité (0.0 = déterministe, 1.0 = créatif)
+    top_p=0.9,                # Sampling des tokens les plus probables
+    repetition_penalty=1.2    # Évite les répétitions
+)
 ```
 
-• If you are using Windows PowerShell, run the following commands:
-```
-Import-Module "C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\Tools\Microsoft.VisualStudio.DevShell.dll" Enter-VsDevShell 3f0e31ad -SkipAutomaticLocation -DevCmdArguments "-arch=x64 -host_arch=x64"
+## Dépannage
+
+### Problème : "Cannot locate configuration_bitnet.py"
+Solution : C'est une erreur connue avec certains modèles BitNet. Essayez d'utiliser un modèle alternatif comme "gpt2" pour vérifier que votre installation fonctionne correctement.
+
+### Problème : "CUDA out of memory"
+Solution : Réduisez la taille du batch, utilisez un modèle plus petit, ou ajoutez le paramètre `device_map="auto"` lors du chargement du modèle.
+
+### Problème : Réponses répétitives
+Solution : Ajustez les paramètres de génération, notamment `repetition_penalty` et `temperature`.
+
+## Installation de llama.cpp pour macOS Silicon
+
+Ce projet peut nécessiter l'utilisation de llama.cpp pour certaines fonctionnalités, notamment avec les modèles BitNet. Voici comment installer et configurer llama.cpp sur macOS avec puce Apple Silicon (M1/M2/M3) :
+
+### 1. Cloner le dépôt llama.cpp
+```bash
+cd ~/Documents
+git clone https://github.com/ggerganov/llama.cpp.git
+cd llama.cpp
 ```
 
-These steps will initialize your environment and allow you to use the correct Visual Studio tools.
+### 2. Compiler avec CMake pour Apple Silicon
+
+> ⚠️ **Note importante** : La méthode de compilation avec Makefile est désormais dépréciée. Utilisez CMake comme recommandé ci-dessous.
+
+```bash
+# Installer CMake si ce n'est pas déjà fait
+brew install cmake
+
+# Créer et accéder au répertoire de build
+mkdir build
+cd build
+
+# Configurer avec support Metal pour Apple Silicon
+cmake .. -DLLAMA_METAL=ON
+
+# Compiler le projet
+cmake --build . --config Release
+```
+
+### 3. Configurer BitNet pour utiliser llama.cpp
+
+Pour intégrer llama.cpp avec BitNet, vous devez créer la structure de répertoires correcte :
+
+```bash
+# Créer le répertoire 3rdparty s'il n'existe pas
+mkdir -p /Users/mguiraud/Documents/github/BitNet/3rdparty/
+
+# Créer un lien symbolique vers llama.cpp
+ln -sf ~/Documents/llama.cpp /Users/mguiraud/Documents/github/BitNet/3rdparty/
+```
+
+### 4. Problèmes connus et solutions
+
+#### Problème de casse dans les chemins
+Si vous rencontrez des erreurs liées à des chemins introuvables, vérifiez la casse des répertoires. macOS peut être sensible à la casse dans certains contextes. Par exemple, si votre dépôt est dans `/Documents/gitHub/` mais que le script recherche dans `/Documents/github/`, créez un lien symbolique :
+
+```bash
+mkdir -p /Users/mguiraud/Documents/github
+ln -sf /Users/mguiraud/Documents/gitHub/BitNet /Users/mguiraud/Documents/github/
+```
+
+#### Fichiers requirements manquants
+Si vous rencontrez une erreur concernant des fichiers requirements manquants dans llama.cpp :
+
+```bash
+# Vérifiez que le dossier requirements de llama.cpp contient tous les fichiers nécessaires
+ls -la ~/Documents/llama.cpp/requirements/
+```
+
+#### Environnement conda
+Si vous utilisez conda et rencontrez l'erreur "CondaError: Run 'conda init' before 'conda activate'" :
+
+```bash
+# Initialisez conda pour votre shell (zsh par défaut sur macOS récent)
+conda init zsh
+
+# Redémarrez votre terminal ou exécutez
+source ~/.zshrc
+```
+
+### 5. Variables d'environnement utiles
+
+Pour faciliter l'utilisation de llama.cpp, ajoutez ces lignes à votre `~/.zshrc` ou au script d'activation de votre environnement conda :
+
+```bash
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/Documents/llama.cpp/build/bin
+export PATH=$PATH:~/Documents/llama.cpp/build/bin
+```
+
+## Ressources
+
+- [Documentation officielle Microsoft BitNet](https://github.com/microsoft/unilm/tree/master/bitnet)
+- [Documentation Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
+- [Documentation uv](https://github.com/astral-sh/uv)
+- [Documentation llama.cpp](https://github.com/ggerganov/llama.cpp)
+
+## Licence
+
+Veuillez consulter les licences des modèles que vous utilisez. Les modèles BitNet sont soumis aux conditions d'utilisation de Microsoft.
