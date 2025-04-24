@@ -5,19 +5,25 @@ Ce projet est une démonstration de l'utilisation du modèle Microsoft BitNet, u
 ## Prérequis
 
 Ce projet nécessite :
-- Python 3.12 ou supérieur
-- Un gestionnaire de paquets Python moderne comme `uv` (recommandé) ou `pip`
-- Accès à Internet pour télécharger les modèles
-- Minimum 8GB de RAM recommandé
+- **Python 3.11** (recommandé ; TorchDynamo/BitNet ne supporte pas encore 3.12)
+- `rust` (compilation de *tokenizers* ≥ 0.21)
+- Un gestionnaire de paquets moderne, idéalement **uv**
+- Accès Internet pour télécharger les modèles
+- 8 Go RAM minimum (CPU ; +GPU = mieux)
+- Xcode Command Line Tools + `brew install llvm libomp` (nécessaire si vous laissez Torch compiler en C++)
 
 ## Configuration
 
 Ce projet utilise :
-- Python 3.12
-- PyTorch >= 2.0.0
-- Transformers >= 4.34.0
-- Accelerate >= 0.23.0
-- uv (gestionnaire de paquets Python)
+- Python 3.11
+- PyTorch 2.3.1
+- Transformers 4.52.0.dev0 (fork *bitnet*)
+- tokenizers ≥ 0.21,<0.22
+- Accelerate 1.6.0
+- uv
+
+> **Attention :** certaines bibliothèques (ex. *colpali‑engine*) exigent `transformers <4.47` et `numpy <2`.  
+> Installez BitNet dans un environnement virtuel séparé pour éviter les conflits.
 
 ## Installation
 
@@ -26,36 +32,48 @@ Ce projet utilise :
 #### Avec uv (recommandé)
 ```bash
 # Créer un environnement virtuel
-uv venv -p python3.12 .venv-uv
+uv venv -p python3.11 .venv-bitnet
 
 # Activer l'environnement
-source .venv-uv/bin/activate  # Sur Unix/macOS
+source .venv-bitnet/bin/activate  # Sur Unix/macOS
 # ou
-.venv-uv\Scripts\activate      # Sur Windows
+.venv-bitnet\Scripts\activate      # Sur Windows
 ```
 
 #### Avec venv (alternative)
 ```bash
 # Créer un environnement virtuel
-python -m venv .venv
+python3.11 -m venv .venv-bitnet
 
 # Activer l'environnement
-source .venv/bin/activate      # Sur Unix/macOS
+source .venv-bitnet/bin/activate      # Sur Unix/macOS
 # ou
-.venv\Scripts\activate         # Sur Windows
+.venv-bitnet\Scripts\activate         # Sur Windows
 ```
 
 ### 2. Installation des dépendances
 
-#### Avec uv (recommandé)
 ```bash
-uv pip install -r requirements.txt
+# Dépendances natives (une seule fois)
+brew install rust
+
+# Installation BitNet
+uv pip install --no-binary :all: "regex!=2019.12.17" "tokenizers>=0.21,<0.22"
+uv pip install torch==2.3.1 accelerate
+uv pip install --no-binary :all: --no-cache-dir \
+  git+https://github.com/shumingma/transformers.git@bitnet
 ```
 
-#### Avec pip (alternative)
+### Fork Transformers à utiliser
+
+Le support officiel de BitNet n’est pas encore fusionné dans `huggingface/transformers`.  
+Utilisez la branche *bitnet* du dépôt suivant :
+
 ```bash
-pip install -r requirements.txt
+git+https://github.com/shumingma/transformers.git@bitnet
 ```
+
+*Ne passez plus* `trust_remote_code=True` ; la classe `BitNetForCausalLM` est incluse dans ce fork.
 
 ## Utilisation des modèles
 
@@ -67,33 +85,28 @@ Ce projet a été testé avec les modèles suivants :
 
 ### Note importante sur BitNet
 
-Les modèles BitNet nécessitent d'utiliser le paramètre `trust_remote_code=True` lors du chargement du modèle et du tokenizer. Ceci est nécessaire car BitNet utilise du code personnalisé pour implémenter la quantification 1-bit.
+Les modèles BitNet nécessitaient autrefois `trust_remote_code=True`.  
+Depuis le fork dédié (cf. ci‑dessus), il suffit de :
 
-Si vous rencontrez des erreurs avec BitNet, vérifiez ces points :
-- Assurez-vous d'utiliser `trust_remote_code=True`
-- Vérifiez que vous utilisez le bon identifiant de modèle
-- La version actuelle des modèles BitNet peut nécessiter une version spécifique de Transformers
+```python
+from transformers import BitNetForCausalLM, AutoTokenizer
+model_id = "microsoft/bitnet-b1.58-2B-4T"
+tok = AutoTokenizer.from_pretrained(model_id)
+model = BitNetForCausalLM.from_pretrained(model_id).to("cpu")  # ou "mps"
+```
+
+Le script *fast-demo.py* intègre déjà ce fork et charge le modèle sans `trust_remote_code`.
 
 ## Exécution
 
-Pour exécuter la démonstration :
+### Exécution rapide avec *fast-demo.py*
 
 ```bash
-python bitnet_demo.py
-```
+# CPU (par défaut)
+uv run python fast-demo.py -p "Cite trois faits surprenants sur Marie Curie"
 
-Ce script téléchargera le modèle configuré et générera une réponse à une question simple.
-
-### Modification du modèle utilisé
-
-Vous pouvez modifier la variable `model_id` dans le fichier `bitnet_demo.py` pour utiliser un autre modèle. Par exemple :
-
-```python
-# Pour utiliser GPT-2 (recommandé pour les tests)
-model_id = "gpt2"
-
-# Pour utiliser BitNet (nécessite trust_remote_code=True)
-model_id = "microsoft/bitnet-b1.58-2B-4T-bf16"
+# Essayer le GPU Apple (MPS) – encore expérimental
+uv run python fast-demo.py -d mps -p "Cite trois faits surprenants sur Marie Curie"
 ```
 
 ## Paramètres de génération
@@ -112,6 +125,12 @@ outputs = model.generate(
 ```
 
 ## Dépannage
+
+- **`weight_scale is on the meta device…`**  
+  Désactivez `device_map="auto"` et forcez le chargement sur CPU :  
+  ```python
+  model = BitNetForCausalLM.from_pretrained(model_id).to("cpu")
+  ```
 
 ### Problème : "Cannot locate configuration_bitnet.py"
 Solution : C'est une erreur connue avec certains modèles BitNet. Essayez d'utiliser un modèle alternatif comme "gpt2" pour vérifier que votre installation fonctionne correctement.

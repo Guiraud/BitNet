@@ -14,13 +14,23 @@ def run_command(command, shell=False):
         sys.exit(1)
 
 def run_inference():
-    build_dir = "build"
-    if platform.system() == "Windows":
-        main_path = os.path.join(build_dir, "bin", "Release", "llama-cli.exe")
-        if not os.path.exists(main_path):
-            main_path = os.path.join(build_dir, "bin", "llama-cli")
-    else:
-        main_path = os.path.join(build_dir, "bin", "llama-cli")
+    # Try to find llama-cli in different locations
+    possible_paths = [
+        os.path.join("build", "bin", "llama-cli"),  # Original path
+        os.path.join("/Users/mguiraud/Documents/llama.cpp/build/bin", "llama-cli"),  # llama.cpp build
+        os.path.join(os.path.expanduser("~"), "Documents", "llama.cpp", "build", "bin", "llama-cli")  # Home directory
+    ]
+    
+    main_path = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            main_path = path
+            print(f"Using llama.cpp binary at: {main_path}")
+            break
+    
+    if main_path is None:
+        print("Error: Could not find llama.cpp binary. Please specify the path manually.")
+        sys.exit(1)
     command = [
         f'{main_path}',
         '-m', args.model,

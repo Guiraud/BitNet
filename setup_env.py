@@ -139,7 +139,8 @@ def prepare_model():
 
 def setup_gguf():
     # Install the pip package
-    run_command([sys.executable, "-m", "pip", "install", "3rdparty/llama.cpp/gguf-py"], log_step="install_gguf")
+    print("Installing gguf-py from PyPI instead of local path")
+    run_command([sys.executable, "-m", "pip", "install", "gguf", "--break-system-packages"], log_step="install_gguf")
 
 def gen_code():
     _, arch = system_info()
